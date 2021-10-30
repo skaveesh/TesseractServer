@@ -35,21 +35,26 @@ class ServerHandler(http.server.SimpleHTTPRequestHandler):
                         url = unquote(self.data_string.partition('&')[0].partition('=')[-1])
 
                         print("Image Location", url)
-                          
+
+                        # Download the image from the URL and convert into image Object
                         image = url_to_image(url)
 
-                        grayscaledMat = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                        # OpenCV - turning the image into grayscale image
+                        grayscaledMat = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
                         
-                        # all pixels value above 120 will be set to 255
+                        # OpenCV - all pixels value above 120 will be set to 255. Then invert it
                         retval, thresholdMat = cv2.threshold(grayscaledMat, 120, 255,  cv2.THRESH_BINARY_INV)
-                        
+
+                        # OpenCV - inverting the image with bitwise_not operator
                         invertedMat = cv2.bitwise_not(thresholdMat)
 
-                        if(self.data_string.partition('&')[2].partition('=')[-1] == 'true'):
+                        # Show the image if showProcessedImage key is true
+                        if(self.data_string.partition('&')[2] == 'showProcessedImage=true'):
                                 cv2.imshow('Final MAT', invertedMat)
                                 cv2.waitKey()
 
-                        data = pytesseract.image_to_string(invertedMat, config='-l eng --psm 7 --oem 3 --dpi 300 -c tessedit_char_whitelist="abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ" -c page_separator=""')
+                        # Processing the image with tesseract OCR
+                        data = pytesseract.image_to_string(invertedMat, config='-l eng --psm 8 --oem 3 --dpi 300 -c tessedit_char_whitelist="abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ" -c page_separator=""')
                         
                         print("Image response", data)
                         
